@@ -1,4 +1,6 @@
 import { WebGLUtility, ShaderProgram } from '/assets/lib/webgl.js';
+import VertexShader from '../shader/main.vert';
+import FragmentShader from '../shader/main.frag';
 
 window.addEventListener(
   'DOMContentLoaded',
@@ -47,12 +49,9 @@ class WebGLApp {
   }
 
   async load() {
-    const vs = await WebGLUtility.loadFile('./assets/shader/main.vert');
-    const fs = await WebGLUtility.loadFile('./assets/shader/main.frag');
-
     this.shaderProgram = new ShaderProgram(this.gl, {
-      vertexShaderSource: vs,
-      fragmentShaderSource: fs,
+      vertexShaderSource: VertexShader,
+      fragmentShaderSource: FragmentShader,
       attribute: ['position', 'idx'],
       stride: [3, 1],
       uniform: ['pointScale', 'progressIndex'],
