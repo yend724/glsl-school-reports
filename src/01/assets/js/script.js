@@ -23,7 +23,7 @@ class WebGLApp {
     this.render = this.render.bind(this);
 
     this.uPointSize = 2.0;
-    this.uProgressIndex = 0.0;
+    this.uProgressIndex = 0;
   }
 
   init(canvas, options = {}) {
@@ -56,7 +56,7 @@ class WebGLApp {
       attribute: ['position', 'idx'],
       stride: [3, 1],
       uniform: ['pointScale', 'progressIndex'],
-      type: ['uniform1f', 'uniform1f'],
+      type: ['uniform1f', 'uniform3fv'],
     });
   }
 
@@ -75,20 +75,20 @@ class WebGLApp {
     const M = phi;
     const PI_2 = Math.PI * 2;
     const MIN = 0;
-    const MAX = 1000;
+    const MAX = 999;
     const MAX_VALUE = Math.sqrt(MAX);
 
-    const calcXY = (n = 0) => {
+    const calcPosition = (n = 0) => {
       const r = Math.sqrt(n) / MAX_VALUE;
-      const x = r * Math.cos((n * PI_2 * N) / M);
-      const y = r * Math.sin((n * PI_2 * N) / M);
+      const x = r * Math.cos((n * PI_2 * N) / M) * 0.9;
+      const y = r * Math.sin((n * PI_2 * N) / M) * 0.9;
       return { x, y };
     };
 
     this.position = [];
     this.idx = [];
     for (let i = MIN; i < MAX; i++) {
-      const { x, y } = calcXY(i);
+      const { x, y } = calcPosition(i);
       this.position.push(x, y, 0.0);
       this.idx.push(i);
     }
@@ -113,13 +113,17 @@ class WebGLApp {
     gl.viewport(0, 0, this.canvas.width, this.canvas.height);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
+    this.uProgressIndex += 1;
+    this.uProgressIndex %= 999;
+    const progressIndexArray = [
+      this.uProgressIndex % 999,
+      (this.uProgressIndex + 333) % 999,
+      (this.uProgressIndex + 666) % 999,
+    ];
+
     this.shaderProgram.use();
     this.shaderProgram.setAttribute(this.vbo);
-    this.shaderProgram.setUniform([this.uPointSize, this.uProgressIndex]);
-    this.uProgressIndex += 1;
-    if (this.uProgressIndex > 1000) {
-      this.uProgressIndex = 0;
-    }
+    this.shaderProgram.setUniform([this.uPointSize, progressIndexArray]);
 
     gl.drawArrays(gl.POINTS, 0, this.position.length / 3);
   }
