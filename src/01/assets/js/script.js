@@ -24,8 +24,10 @@ class WebGLApp {
     this.resize = this.resize.bind(this);
     this.render = this.render.bind(this);
 
-    this.uPointSize = 2.0;
-    this.uProgressIndex = 0;
+    this.uPointSize = 5.0;
+    this.uProgressIndex = -500;
+
+    this.aspectRatio = window.innerWidth / window.innerHeight;
   }
 
   init(canvas, options = {}) {
@@ -55,7 +57,7 @@ class WebGLApp {
       attribute: ['position', 'idx'],
       stride: [3, 1],
       uniform: ['pointScale', 'progressIndex'],
-      type: ['uniform1f', 'uniform3fv'],
+      type: ['uniform1f', 'uniform2fv'],
     });
   }
 
@@ -74,13 +76,17 @@ class WebGLApp {
     const M = phi;
     const PI_2 = Math.PI * 2;
     const MIN = 0;
-    const MAX = 999;
+    const MAX = 1000;
     const MAX_VALUE = Math.sqrt(MAX);
 
     const calcPosition = (n = 0) => {
       const r = Math.sqrt(n) / MAX_VALUE;
-      const x = r * Math.cos((n * PI_2 * N) / M) * 0.9;
-      const y = r * Math.sin((n * PI_2 * N) / M) * 0.9;
+      const aspectRatioScaleX =
+        this.aspectRatio > 1.0 ? 1.0 / this.aspectRatio : 1.0;
+      const aspectRatioScaleY = this.aspectRatio > 1.0 ? 1.0 : this.aspectRatio;
+
+      const x = r * Math.cos((n * PI_2 * N) / M) * 0.9 * aspectRatioScaleX;
+      const y = r * Math.sin((n * PI_2 * N) / M) * 0.9 * aspectRatioScaleY;
       return { x, y };
     };
 
@@ -100,6 +106,8 @@ class WebGLApp {
   resize() {
     this.canvas.width = window.innerWidth;
     this.canvas.height = window.innerHeight;
+    this.aspectRatio = this.canvas.width / this.canvas.height;
+    this.setupGeometry();
   }
 
   render() {
@@ -113,12 +121,10 @@ class WebGLApp {
     gl.clear(gl.COLOR_BUFFER_BIT);
 
     this.uProgressIndex += 1;
-    this.uProgressIndex %= 999;
-    const progressIndexArray = [
-      this.uProgressIndex % 999,
-      (this.uProgressIndex + 333) % 999,
-      (this.uProgressIndex + 666) % 999,
-    ];
+    if (this.uProgressIndex > 1000) {
+      this.uProgressIndex = -500;
+    }
+    const progressIndexArray = [this.uProgressIndex, this.uProgressIndex + 500];
 
     this.shaderProgram.use();
     this.shaderProgram.setAttribute(this.vbo);
