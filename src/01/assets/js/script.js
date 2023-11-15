@@ -120,7 +120,7 @@ class WebGLApp {
     gl.viewport(0, 0, this.canvas.width, this.canvas.height);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
-    this.uProgressIndex += 1;
+    this.uProgressIndex += 2;
     this.uProgressIndex %= 1000;
 
     this.shaderProgram.use();
