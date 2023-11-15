@@ -24,8 +24,8 @@ class WebGLApp {
     this.resize = this.resize.bind(this);
     this.render = this.render.bind(this);
 
-    this.uPointSize = 5.0;
-    this.uProgressIndex = -500;
+    this.uPointSize = 3.0;
+    this.uProgressIndex = 0;
 
     this.aspectRatio = window.innerWidth / window.innerHeight;
   }
@@ -57,7 +57,7 @@ class WebGLApp {
       attribute: ['position', 'idx'],
       stride: [3, 1],
       uniform: ['pointScale', 'progressIndex'],
-      type: ['uniform1f', 'uniform2fv'],
+      type: ['uniform1f', 'uniform1f'],
     });
   }
 
@@ -121,14 +121,11 @@ class WebGLApp {
     gl.clear(gl.COLOR_BUFFER_BIT);
 
     this.uProgressIndex += 1;
-    if (this.uProgressIndex > 1000) {
-      this.uProgressIndex = -500;
-    }
-    const progressIndexArray = [this.uProgressIndex, this.uProgressIndex + 500];
+    this.uProgressIndex %= 1000;
 
     this.shaderProgram.use();
     this.shaderProgram.setAttribute(this.vbo);
-    this.shaderProgram.setUniform([this.uPointSize, progressIndexArray]);
+    this.shaderProgram.setUniform([this.uPointSize, this.uProgressIndex]);
 
     gl.drawArrays(gl.POINTS, 0, this.position.length / 3);
   }
