@@ -7,6 +7,8 @@ import VertexShader from '../shader/main.vert';
 import FragmentShader from '../shader/main.frag';
 import SampleImg01 from '../img/sample01.png';
 
+const info = document.querySelector('#info');
+
 window.addEventListener(
   'DOMContentLoaded',
   async () => {
@@ -169,7 +171,11 @@ class WebGLApp {
     const v3 = WebGLMath.Vec3;
 
     this.uVelocity[0] *= 0.9;
+    if (Math.abs(this.uVelocity[0]) < 0.001) this.uVelocity[0] = 0;
     this.uVelocity[1] *= 0.9;
+    if (Math.abs(this.uVelocity[1]) < 0.001) this.uVelocity[1] = 0;
+
+    info.textContent = `uMouse: ${this.uMouse[0]}, ${this.uMouse[1]}\nuVelocity: ${this.uVelocity[0]}, ${this.uVelocity[1]}`;
 
     // running が true の場合は requestAnimationFrame を呼び出す
     if (this.running === true) {
