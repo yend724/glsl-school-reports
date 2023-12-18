@@ -1,14 +1,11 @@
-import gsap from 'gsap';
-import { Pane } from 'tweakpane';
+// import gsap from 'gsap';
+// import { Pane } from 'tweakpane';
 import { WebGLUtility, ShaderProgram } from '/assets/lib/webgl.js';
 import { WebGLOrbitCamera } from '/assets/lib/camera';
 import { WebGLMath } from '/assets/lib/math.js';
 import VertexShader from '../shader/main.vert';
 import FragmentShader from '../shader/main.frag';
-import SampleImg01 from '../img/sample1.jpg';
-import SampleImg02 from '../img/sample2.jpg';
-import Texture01 from '../img/monochrome-01.png';
-import Texture02 from '../img/monochrome-02.jpg';
+import SampleImg01 from '../img/sample01.png';
 
 window.addEventListener(
   'DOMContentLoaded',
@@ -44,22 +41,22 @@ class WebGLApp {
     this.uVelocity = [0.0, 0.0]; // uniform 変数 velocity 用
 
     // tweakpane を初期化
-    const pane = new Pane();
-    pane
-      .addBlade({
-        view: 'list',
-        label: 'monochrome',
-        options: [
-          { text: 'monochrome-0', value: 0 },
-          { text: 'monochrome-1', value: 1 },
-        ],
-        value: 0,
-      })
-      .on('change', v => {
-        const gl = this.gl;
-        gl.activeTexture(gl.TEXTURE2);
-        gl.bindTexture(gl.TEXTURE_2D, this.monochrome[v.value]);
-      });
+    // const pane = new Pane();
+    // pane
+    //   .addBlade({
+    //     view: 'list',
+    //     label: 'monochrome',
+    //     options: [
+    //       { text: 'monochrome-0', value: 0 },
+    //       { text: 'monochrome-1', value: 1 },
+    //     ],
+    //     value: 0,
+    //   })
+    //   .on('change', v => {
+    //     const gl = this.gl;
+    //     gl.activeTexture(gl.TEXTURE2);
+    //     gl.bindTexture(gl.TEXTURE_2D, this.monochrome[v.value]);
+    //   });
 
     window.addEventListener(
       'pointermove',
@@ -87,19 +84,9 @@ class WebGLApp {
       fragmentShaderSource: FragmentShader,
       attribute: ['position', 'texCoord'],
       stride: [3, 2],
-      uniform: [
-        'mvpMatrix',
-        'textureUnit0',
-        'textureUnit1',
-        'textureUnit2',
-        'time',
-        'mouse',
-        'velocity',
-      ],
+      uniform: ['mvpMatrix', 'textureUnit0', 'time', 'mouse', 'velocity'],
       type: [
         'uniformMatrix4fv',
-        'uniform1i',
-        'uniform1i',
         'uniform1i',
         'uniform1f',
         'uniform2fv',
@@ -111,14 +98,6 @@ class WebGLApp {
       this.gl,
       SampleImg01
     );
-    this.texture1 = await WebGLUtility.createTextureFromFile(
-      this.gl,
-      SampleImg02
-    );
-    this.monochrome = [
-      await WebGLUtility.createTextureFromFile(this.gl, Texture01),
-      await WebGLUtility.createTextureFromFile(this.gl, Texture02),
-    ];
   }
   /**
    * WebGL のレンダリングを開始する前のセットアップを行う。
@@ -126,10 +105,15 @@ class WebGLApp {
   setup() {
     const gl = this.gl;
 
+    const fov = 60;
+    const fovRad = fov * 0.5 * (Math.PI / 180);
+    const aspect = window.innerHeight / window.innerWidth;
+    const dist = ((2 * 0.5) / Math.tan(fovRad)) * Math.min(aspect, 1.0);
+
     const cameraOption = {
-      distance: 2.0,
-      min: 1.0,
-      max: 10.0,
+      distance: dist,
+      min: dist,
+      max: dist,
       move: 2.0,
     };
     this.camera = new WebGLOrbitCamera(this.canvas, cameraOption);
@@ -148,9 +132,6 @@ class WebGLApp {
     gl.bindTexture(gl.TEXTURE_2D, this.texture0);
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_2D, this.texture1);
-    gl.activeTexture(gl.TEXTURE2);
-    gl.bindTexture(gl.TEXTURE_2D, this.monochrome[0]);
-    gl.activeTexture(gl.TEXTURE3);
   }
   /**
    * ジオメトリ（頂点情報）を構築するセットアップを行う。
@@ -231,8 +212,6 @@ class WebGLApp {
     this.shaderProgram.setUniform([
       mvp,
       0,
-      1,
-      2,
       this.uTime,
       this.uMouse,
       this.uVelocity,
