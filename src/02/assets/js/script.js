@@ -70,8 +70,8 @@ class WebGLApp {
         this.uMouse[0] = signedX;
         this.uMouse[1] = signedY; // スクリーン空間とは正負が逆
 
-        this.uVelocity[0] = mouseEvent.movementX;
-        this.uVelocity[1] = mouseEvent.movementY;
+        this.uVelocity[0] = mouseEvent.movementX ?? 0;
+        this.uVelocity[1] = mouseEvent.movementY ?? 0;
       },
       false
     );
@@ -170,10 +170,16 @@ class WebGLApp {
     const m4 = WebGLMath.Mat4;
     const v3 = WebGLMath.Vec3;
 
-    this.uVelocity[0] *= 0.9;
-    if (Math.abs(this.uVelocity[0]) < 0.001) this.uVelocity[0] = 0;
-    this.uVelocity[1] *= 0.9;
-    if (Math.abs(this.uVelocity[1]) < 0.001) this.uVelocity[1] = 0;
+    if (Math.abs(this.uVelocity[0]) > 0.001) {
+      this.uVelocity[0] *= 0.9;
+    } else {
+      this.uVelocity[0] = 0;
+    }
+    if (Math.abs(this.uVelocity[1]) > 0.001) {
+      this.uVelocity[1] *= 0.9;
+    } else {
+      this.uVelocity[1] = 0;
+    }
 
     info.textContent = `uMouse: ${this.uMouse[0]}, ${this.uMouse[1]}\nuVelocity: ${this.uVelocity[0]}, ${this.uVelocity[1]}`;
 
