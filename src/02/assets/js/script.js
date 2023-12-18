@@ -7,7 +7,8 @@ import VertexShader from '../shader/main.vert';
 import FragmentShader from '../shader/main.frag';
 import SampleImg01 from '../img/sample1.jpg';
 import SampleImg02 from '../img/sample2.jpg';
-import Texture from '../img/texture.png';
+import Texture01 from '../img/monochrome-01.png';
+import Texture02 from '../img/monochrome-02.jpg';
 
 window.addEventListener(
   'DOMContentLoaded',
@@ -40,20 +41,25 @@ class WebGLApp {
     this.previousTime = 0; // 直前のフレームのタイムスタンプ
     this.uTime = 0.0; // uniform 変数 time 用
     this.uMouse = [0.0, 0.0]; // マウス座標用
+    this.uVelocity = [0.0, 0.0]; // uniform 変数 velocity 用
 
     // tweakpane を初期化
-    // const pane = new Pane();
-    // pane
-    //   .addBlade({
-    //     view: 'slider',
-    //     label: 'time-scale',
-    //     min: 0.0,
-    //     max: 2.0,
-    //     value: this.timeScale,
-    //   })
-    //   .on('change', v => {
-    //     this.timeScale = v.value;
-    //   });
+    const pane = new Pane();
+    pane
+      .addBlade({
+        view: 'list',
+        label: 'monochrome',
+        options: [
+          { text: 'monochrome-0', value: 0 },
+          { text: 'monochrome-1', value: 1 },
+        ],
+        value: 0,
+      })
+      .on('change', v => {
+        const gl = this.gl;
+        gl.activeTexture(gl.TEXTURE2);
+        gl.bindTexture(gl.TEXTURE_2D, this.monochrome[v.value]);
+      });
 
     window.addEventListener(
       'pointermove',
@@ -64,6 +70,9 @@ class WebGLApp {
         const signedY = y;
         this.uMouse[0] = signedX;
         this.uMouse[1] = signedY; // スクリーン空間とは正負が逆
+
+        this.uVelocity[0] = mouseEvent.movementX;
+        this.uVelocity[1] = mouseEvent.movementY;
       },
       false
     );
@@ -85,6 +94,7 @@ class WebGLApp {
         'textureUnit2',
         'time',
         'mouse',
+        'velocity',
       ],
       type: [
         'uniformMatrix4fv',
@@ -92,6 +102,7 @@ class WebGLApp {
         'uniform1i',
         'uniform1i',
         'uniform1f',
+        'uniform2fv',
         'uniform2fv',
       ],
     });
@@ -104,7 +115,10 @@ class WebGLApp {
       this.gl,
       SampleImg02
     );
-    this.texture2 = await WebGLUtility.createTextureFromFile(this.gl, Texture);
+    this.monochrome = [
+      await WebGLUtility.createTextureFromFile(this.gl, Texture01),
+      await WebGLUtility.createTextureFromFile(this.gl, Texture02),
+    ];
   }
   /**
    * WebGL のレンダリングを開始する前のセットアップを行う。
@@ -135,7 +149,7 @@ class WebGLApp {
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_2D, this.texture1);
     gl.activeTexture(gl.TEXTURE2);
-    gl.bindTexture(gl.TEXTURE_2D, this.texture2);
+    gl.bindTexture(gl.TEXTURE_2D, this.monochrome[0]);
     gl.activeTexture(gl.TEXTURE3);
   }
   /**
@@ -172,6 +186,9 @@ class WebGLApp {
     const gl = this.gl;
     const m4 = WebGLMath.Mat4;
     const v3 = WebGLMath.Vec3;
+
+    this.uVelocity[0] *= 0.9;
+    this.uVelocity[1] *= 0.9;
 
     // running が true の場合は requestAnimationFrame を呼び出す
     if (this.running === true) {
@@ -211,7 +228,15 @@ class WebGLApp {
     // プログラムオブジェクトを指定し、VBO と uniform 変数を設定
     this.shaderProgram.use();
     this.shaderProgram.setAttribute(this.vbo);
-    this.shaderProgram.setUniform([mvp, 0, 1, 2, this.uTime, this.uMouse]);
+    this.shaderProgram.setUniform([
+      mvp,
+      0,
+      1,
+      2,
+      this.uTime,
+      this.uMouse,
+      this.uVelocity,
+    ]);
 
     // 設定済みの情報を使って、頂点を画面にレンダリングする
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, this.position.length / 3);

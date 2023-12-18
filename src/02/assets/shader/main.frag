@@ -1,26 +1,28 @@
 precision mediump float;
 
 uniform sampler2D textureUnit0;
-uniform sampler2D textureUnit1;
 uniform sampler2D textureUnit2;
 uniform vec2 mouse;
+uniform vec2 velocity;
 uniform float time;
 
 varying vec2 vTexCoord;
 
+float split = 16.0;
+float xSplitUnit = 1.0 / split;
+float ySplitUnit = 1.0 / split;
+
 void main() {
     vec2 vUv = vTexCoord;
 
-    vec4 text01 = texture2D(textureUnit0, vUv);
-    vec4 text02 = texture2D(textureUnit1, vUv);
+    float xIndex = floor(vUv.x / xSplitUnit) / split + xSplitUnit * .5;
+    float yIndex = floor(vUv.y / ySplitUnit) / split + ySplitUnit * .5;
+    float len = length(mouse - vec2(xIndex, yIndex));
+
     vec4 offset = texture2D(textureUnit2, vUv);
+    vec4 texture = texture2D(textureUnit0, vUv);
 
-    float len = length(mouse - vUv);
-
-    float dis = clamp(1.0 - len * 2.0, 0.0, 1.0);
-
-    vec4 color1 = texture2D(textureUnit0,vUv - len * 0.2 * offset.rg * dis);
-    vec4 color2 = texture2D(textureUnit1,vUv + len * 0.2 * offset.rg * dis);
-    gl_FragColor = mix(color1, color2, mouse.x);
+    texture = texture2D(textureUnit0, vUv - 0.02 * offset.rg * velocity * smoothstep(0.0, 0.25, max(0.25 - len, 0.0)));
+    gl_FragColor = texture;
 }
 
