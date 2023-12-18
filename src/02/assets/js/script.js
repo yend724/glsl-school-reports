@@ -38,6 +38,8 @@ class WebGLApp {
 
     // 各種パラメータや uniform 変数用
     this.previousTime = 0; // 直前のフレームのタイムスタンプ
+    this.previousMouse = [0.0, 0.0]; // マウス座標用
+
     this.uTime = 0.0; // uniform 変数 time 用
     this.uMouse = [0.0, 0.0]; // マウス座標用
     this.uVelocity = [0.0, 0.0]; // uniform 変数 velocity 用
@@ -70,8 +72,11 @@ class WebGLApp {
         this.uMouse[0] = signedX;
         this.uMouse[1] = signedY; // スクリーン空間とは正負が逆
 
-        this.uVelocity[0] = mouseEvent.movementX ?? 0;
-        this.uVelocity[1] = mouseEvent.movementY ?? 0;
+        this.uVelocity[0] = mouseEvent.screenX - this.previousMouse[0];
+        this.uVelocity[1] = mouseEvent.screenY - this.previousMouse[1];
+
+        this.previousMouse[0] = mouseEvent.screenX;
+        this.previousMouse[1] = mouseEvent.screenY;
       },
       false
     );
